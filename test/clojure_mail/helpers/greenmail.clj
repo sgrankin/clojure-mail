@@ -1,8 +1,8 @@
 (ns clojure-mail.helpers.greenmail
   "Some functions to make easier to create integration testing with GreenMail."
   (:import [com.icegreen.greenmail.util GreenMail ServerSetupTest]
-           [javax.mail Session Message$RecipientType]
-           [javax.mail.internet InternetAddress MimeMessage MimeMessage$RecipientType]
+           [jakarta.mail Session Message$RecipientType]
+           [jakarta.mail.internet InternetAddress MimeMessage MimeMessage$RecipientType]
            (java.util Properties)))
 
 
@@ -52,7 +52,7 @@
   (try
     (let [imap-server (.getImap gm)
           imaps-server (.getImaps gm)]
-      {:imap  (when imap-server (.getPort imap-server))
+      {:imap (when imap-server (.getPort imap-server))
        :imaps (when imaps-server (.getPort imaps-server))})
     (catch NullPointerException e
       (throw (IllegalStateException. "GreenMail instance not started")))))
@@ -81,18 +81,18 @@
      msg))
   ([email-map]
    (make-direct-text-message (:from email-map)
-                             (:to email-map)
-                             (:subject email-map)
-                             (:body email-map))))
+     (:to email-map)
+     (:subject email-map)
+     (:body email-map))))
 
 (defn direct-text-message->map
   "Given a MimeMessage instance created by make-direct-text-message, turns it into a map with the
   same structure (:from, :to, :subject, :body)."
   [m]
-  {:body    (.getContent m)
+  {:body (.getContent m)
    :subject (.getSubject m)
-   :from    (->> (.getFrom m) first (.getAddress))
-   :to      (->> (.getRecipients m MimeMessage$RecipientType/TO) first (.getAddress))})
+   :from (->> (.getFrom m) first (.getAddress))
+   :to (->> (.getRecipients m MimeMessage$RecipientType/TO) first (.getAddress))})
 
 (defn get-greenmail-user-by-login
   "Given `gm`, a GreenMail instance and `login`, the login-name of one of its
@@ -113,9 +113,9 @@
   user (identified by the `to` parameter in the `gm` GreenMail instance. No
   SMTP is used. This message will end in the user's INBOX folder."
   ([gm from to subject body]
-  (let [usr (get-greenmail-user-by-email gm to)
-        msg (make-direct-text-message from to subject body)]
-    (.deliver usr msg)))
+   (let [usr (get-greenmail-user-by-email gm to)
+         msg (make-direct-text-message from to subject body)]
+     (.deliver usr msg)))
   ([gm msg-map]
    (deliver-direct-text-message!
      gm

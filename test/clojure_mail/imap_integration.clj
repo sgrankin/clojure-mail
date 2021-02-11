@@ -3,22 +3,22 @@
             [clojure-mail.core :refer :all]
             [clojure-mail.message :as message]
             [clojure-mail.helpers.fixtures :as fxt])
-  (:import (javax.mail AuthenticationFailedException)))
+  (:import (jakarta.mail AuthenticationFailedException)))
 
 (use-fixtures :once (fxt/make-gm-fixture :imap))
 
-(def ^:const user-config [{:login    "user1" :pass "password1" :email "user1@localhost"
-                           :messages [{:from    "user2@localhost"
+(def ^:const user-config [{:login "user1" :pass "password1" :email "user1@localhost"
+                           :messages [{:from "user2@localhost"
                                        :subject "From user2 to user1"
-                                       :body    "Random text."}
-                                      {:from    "user2@localhost"
+                                       :body "Random text."}
+                                      {:from "user2@localhost"
                                        :subject "Another e-mail from user2"
-                                       :body    "More random text."}]}
-                          {:login    "user2" :pass "password2" :email "user2@localhost"
-                           :messages [{:from    "user1@localhost"
+                                       :body "More random text."}]}
+                          {:login "user2" :pass "password2" :email "user2@localhost"
+                           :messages [{:from "user1@localhost"
                                        :subject "From user1 to user2"
-                                       :body    "Random text."}]}
-                          {:login    "user3" :pass "password3" :email "user3@localhost"
+                                       :body "Random text."}]}
+                          {:login "user3" :pass "password3" :email "user3@localhost"
                            :messages []}])
 
 (use-fixtures :each (fxt/make-custom-fixture-from-config user-config))
@@ -32,10 +32,10 @@
   ;; Test below disabled since authentication failures seem to genearate a runaway thread
   ;; in the IMAP server
   ;; TODO Investigate GreenMail e-mail thread and enable test
-  #_(testing "A javax.mail.AuthenticationFailedException is thrown if credentials are not correct."
-    (let [port (fxt/get-server-port :imap)]
-      (is (thrown? AuthenticationFailedException
-                   (store "imap" ["localhost" port] "user1" "bad-password"))))))
+  #_(testing "A jakarta.mail.AuthenticationFailedException is thrown if credentials are not correct."
+      (let [port (fxt/get-server-port :imap)]
+        (is (thrown? AuthenticationFailedException
+              (store "imap" ["localhost" port] "user1" "bad-password"))))))
 
 (deftest multiple-store-test
   (testing "Multiple stores running at the same time identify themselves as connected."
@@ -88,7 +88,7 @@
         (is (not (message/read? sut)))
         (close-store test-store)))
     #_(testing "A message that has being retrieved before is marked as read."
-      (let [test-store (apply store "imap" ["localhost" port] credentials)
-            sut (first (all-messages test-store "inbox"))]
-        (is (message/read? sut))
-        (close-store test-store)))))
+        (let [test-store (apply store "imap" ["localhost" port] credentials)
+              sut (first (all-messages test-store "inbox"))]
+          (is (message/read? sut))
+          (close-store test-store)))))

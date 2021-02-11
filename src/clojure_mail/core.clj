@@ -4,13 +4,13 @@
             [clojure-mail.message :refer [read-message]]
             [clojure-mail.folder :as folder])
   (:import [java.util Properties]
-           [javax.mail.search FlagTerm]
+           [jakarta.mail.search FlagTerm]
            [java.io FileInputStream File]
-           [javax.mail.internet MimeMessage]
-           [javax.mail Session
-                       Folder
-                       Flags
-                       Flags$Flag AuthenticationFailedException]
+           [jakarta.mail.internet MimeMessage]
+           [jakarta.mail Session
+                         Folder
+                         Flags
+                         Flags$Flag AuthenticationFailedException]
            (com.sun.mail.imap IMAPStore)))
 
 (defonce ^:dynamic *store* nil)
@@ -48,7 +48,7 @@
 (defn get-session
   [protocol]
   (let [p (as-properties
-            {"mail.store.protocol"                         protocol
+            {"mail.store.protocol" protocol
              (format "mail.%s.usesocketchannels" protocol) true})]
     (Session/getInstance p)))
 
@@ -62,10 +62,10 @@
    ports if required."
   [protocol server]
   (let [default-port (cond
-                       (and (number? protocol) (< protocol 65536) ) protocol
+                       (and (number? protocol) (< protocol 65536)) protocol
                        (= (keyword protocol) :imaps) 993
                        (= (keyword protocol) :imap) 143
-                       :else 993) ]
+                       :else 993)]
     (if (sequential? server)
       (do
         (when (empty? server)
@@ -86,7 +86,7 @@
    (store "imaps" server email pass))
   ([protocol server email pass]
    (let [p (as-properties
-             {"mail.store.protocol"                         protocol
+             {"mail.store.protocol" protocol
               (format "mail.%s.usesocketchannels" protocol) true})
          session (Session/getInstance p)]
      (store protocol session server email pass)))
@@ -100,12 +100,12 @@
    (xoauth2-store "imaps" server email oauth-token))
   ([protocol server email oauth-token]
    (let [p (as-properties
-             {(format "mail.%s.ssl.enable" protocol)         true
-              (format "mail.%s.sasl.enable" protocol)        true
+             {(format "mail.%s.ssl.enable" protocol) true
+              (format "mail.%s.sasl.enable" protocol) true
               (format "mail.%s.auth.login.disable" protocol) true
               (format "mail.%s.auth.plain.disable" protocol) true
-              (format "mail.%s.auth.mechanisms" protocol)    "XOAUTH2"
-              (format "mail.%s.usesocketchannels" protocol)  true})
+              (format "mail.%s.auth.mechanisms" protocol) "XOAUTH2"
+              (format "mail.%s.usesocketchannels" protocol) true})
          session (Session/getInstance p)]
      (doto (.getStore session protocol)
        (.connect server, email, oauth-token)))))
@@ -150,12 +150,12 @@
   ([store f]
    (map
      #(cons (.getName %)
-            (if (sub-folder? %)
-              (folders store %)))
+        (if (sub-folder? %)
+          (folders store %)))
      (.list f))))
 
 (def folder-permissions
-  {:readonly  Folder/READ_ONLY
+  {:readonly Folder/READ_ONLY
    :readwrite Folder/READ_WRITE})
 
 (defn open-folder
@@ -184,7 +184,7 @@
   ([^IMAPStore store folder-name]
    (let [folder (open-folder store folder-name :readwrite)]
      (.search folder
-              (FlagTerm. (Flags. Flags$Flag/SEEN) false)))))
+       (FlagTerm. (Flags. Flags$Flag/SEEN) false)))))
 
 (defn mark-all-read
   "Mark all messages in folder as read"
@@ -198,10 +198,10 @@
   [message]
   (let [filename
         (apply str
-               (drop 1 (message/id message)))]
+          (drop 1 (message/id message)))]
     (.writeTo message
-              (java.io.FileOutputStream.
-                filename))))
+      (java.io.FileOutputStream.
+        filename))))
 
 (defn dump
   "Handy function that dumps out a batch of emails to disk"
@@ -213,15 +213,15 @@
 
 (defn all-messages
   "Given a store and folder returns all messages
-   reversed so the newest messages come first. 
+   reversed so the newest messages come first.
   If since-uid is provided, return all messages with newer or equal uid"
   ([folder-name] (all-messages *store* folder-name))
   ([^IMAPStore store folder-name & {:keys [since-uid]}]
    (let [folder (open-folder store folder-name :readonly)]
      (->> (if-not since-uid
             (.getMessages folder)
-            (.getMessagesByUID folder since-uid javax.mail.UIDFolder/LASTUID))
-          reverse))))
+            (.getMessagesByUID folder since-uid jakarta.mail.UIDFolder/LASTUID))
+       reverse))))
 
 (defn inbox
   "Get n messages from your inbox"
@@ -234,4 +234,4 @@
   [store term]
   (let [inbox (open-folder store "inbox" :readonly)]
     (into []
-          (folder/search inbox term))))
+      (folder/search inbox term))))

@@ -1,14 +1,14 @@
 (ns clojure-mail.message
   (:require [medley.core :refer [filter-keys]])
-  (:import [javax.mail.internet InternetAddress MimeMultipart MimeMessage]
-           [javax.mail Message$RecipientType Flags Flags$Flag]))
+  (:import [jakarta.mail.internet InternetAddress MimeMultipart MimeMessage]
+           [jakarta.mail Message$RecipientType Flags Flags$Flag]))
 
 (defn mime-type
   "Determine the function to call to get the body text of a message"
   [type]
   (let [infered-type
         (clojure.string/lower-case
-         (first (clojure.string/split type #"[;]")))]
+          (first (clojure.string/split type #"[;]")))]
     (condp = infered-type
       "multipart/alternative" :multipart
       "multipart/mixed" :multipart
@@ -18,13 +18,13 @@
 
 (defn imap-address->map
   [^InternetAddress address]
-  {:address  (.getAddress address)
+  {:address (.getAddress address)
    :name (.getPersonal address)})
 
 (defn recipients
   [^MimeMessage msg recipient-type]
   (map imap-address->map
-       (.getRecipients msg recipient-type)))
+    (.getRecipients msg recipient-type)))
 
 (defn to
   "Returns a sequence of receivers"
@@ -79,7 +79,7 @@
   [message flag]
   (let [f (flags message)]
     (boolean
-     (.contains f flag))))
+      (.contains f flag))))
 
 (defn read?
   "Checks if this message has been read"
@@ -131,7 +131,7 @@
   (let [headers (.getAllHeaders msg)
         results (enumeration-seq headers)]
     (into []
-          (map #(hash-map (.getName %) (.getValue %)) results))))
+      (map #(hash-map (.getName %) (.getValue %)) results))))
 
 (defn- multipart?
   "Returns true if a message is a multipart email"
@@ -143,7 +143,7 @@
    with content type and message contents"
   [msg]
   {:content-type (.getContentType msg)
-   :body         (.getContent msg)})
+   :body (.getContent msg)})
 
 (defn read-multi [mime-multi-part]
   (let [count (.getCount mime-multi-part)]
@@ -156,7 +156,7 @@
   [^MimeMultipart msg]
   (when (multipart? msg)
     (read-multi
-     (get-content msg))))
+      (get-content msg))))
 
 (defn message-body
   "Read all the body content from a message
